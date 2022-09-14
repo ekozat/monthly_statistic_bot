@@ -1,0 +1,45 @@
+name: Bump image version
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+  
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Bump version
+        run: |
+          git config --global user.email "github+actions@gmail.com"
+          git config --global user.name "Actions"
+          git fetch --tags
+          wget -O - https://raw.githubusercontent.com/treeder/bump/master/gitbump.sh | bash
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+         aws-access-key-id: ${{ secrets.ACCESS_KEY_ID }}
+         aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+         aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        
+
+
+      - name: Release new image
+        run: |
+          ./release.sh
+
+
+
+
+
+  #run the release sh script with all push commands
+  #run with act library
